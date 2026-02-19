@@ -3,6 +3,7 @@ import json
 import os
 import random
 from typing import Dict, List
+from aiohttp import web
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
@@ -74,6 +75,26 @@ def build_restart_keyboard() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [InlineKeyboardButton(text="🔁 Пройти ще раз", callback_data="restart")]
         ]
+async def start_health_server() -> None:
+    app = web.Application()
+
+    async def root(request: web.Request) -> web.Response:
+        return web.Response(text="RightQuestionsBot is alive ✅")
+
+    async def health(request: web.Request) -> web.Response:
+        return web.Response(text="OK")
+
+    app.router.add_get("/", root)
+    app.router.add_get("/health", health)
+
+    runner = web.AppRunner(app)
+    await runner.setup()
+
+    port = int(os.getenv("PORT", "8080"))
+    site = web.TCPSite(runner, host="0.0.0.0", port=port)
+    await site.start()
+
+
     )
 
 # ---------- Логіка ----------
@@ -110,6 +131,8 @@ async def main():
 
     bot = Bot(token=TOKEN)
     dp = Dispatcher()
+await start_health_server()
+await dp.start_polling(bot)
 
     @dp.message(Command("start"))
     async def start_handler(message: Message):
@@ -180,7 +203,9 @@ async def main():
         await callback.answer()
         await send_question(callback.message, session)
 
-    await dp.start_polling(bot)
+   await start_health_server()
+await dp.start_polling(bot)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
