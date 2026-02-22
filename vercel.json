@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/index.py": {
+      "runtime": "python3.11"
+    }
+  }
+}
+git add .
+git commit -m "fix vercel config"
+git push
